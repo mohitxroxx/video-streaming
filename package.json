@@ -1,0 +1,41 @@
+{
+  "name": "project",
+  "version": "1.0.0",
+  "main": "build/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node build/index.js",
+    "dev": "tsc-watch --onSuccess \"node ./build/index.js\"",
+    "debug": "nodemon --exec ts-node src/index.ts"
+  },
+  "author": "MohiT",
+  "license": "ISC",
+  "description": "Backend files",
+  "dependencies": {
+    "axios": "^1.7.5",
+    "bcrypt": "^5.1.1",
+    "connect-redis": "^7.1.1",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "ioredis": "^5.4.1",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.4.1",
+    "nodemon": "^3.1.4",
+    "redis": "^4.7.0"
+  },
+  "devDependencies": {
+    "@types/cookie-parser": "^1.4.7",
+    "@types/cors": "^2.8.17",
+    "@types/dotenv": "^8.2.0",
+    "@types/express": "^4.17.21",
+    "@types/express-session": "^1.18.0",
+    "@types/jsonwebtoken": "^9.0.6",
+    "@types/mongoose": "^5.11.97",
+    "@types/node": "^22.5.0",
+    "tsc-watch": "^6.2.0",
+    "typescript": "^5.6.3"
+  }
+}
