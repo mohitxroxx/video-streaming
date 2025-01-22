@@ -4,7 +4,7 @@ import 'dotenv/config'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import { Requests } from './utils/def'
-
+import fileUpload from "express-fileupload"
 
 const app = express()
 
@@ -13,11 +13,17 @@ app.use(express.urlencoded({ extended: false }))
 app.use(express.json())
 app.use(cookieParser())
 
-app.use('/api', routes)
+app.use('/api',fileUpload(), routes)
 
 
-app.get('/', (req: Requests, res: Response): Response => {
-    return res.status(201).json({ msg: "Server is Live!!!🚀" })
+app.get('/', (req: Requests, res: Response) => {
+    res.send(`
+        <form action="/api/upload" enctype="multipart/form-data" method="post">
+          <div>Text field title: <input type="text" name="title" /></div>
+          <div>File: <input type="file" name="myfiles" multiple="multiple" /></div>
+          <input type="submit" value="Upload" />
+        </form>
+      `);
 })
 
 

@@ -8,4 +8,5 @@ declare module 'express-session' {
 
 export interface Requests extends Request {
     user: string
+    files: any
 }

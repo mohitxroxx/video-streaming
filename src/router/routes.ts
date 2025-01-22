@@ -3,6 +3,6 @@ import ctrl from '../controllers/controllers'
 const app: Router = Router();
 
 
-app.get('/upload',ctrl.uploadFile)
+app.post('/upload',ctrl.uploadFile)
 
 export default app

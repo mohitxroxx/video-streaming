@@ -1,57 +1,42 @@
-import { S3Client, GetObjectCommand,PutObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import fs from 'fs'
-import 'dotenv/config'
+import { readFile } from "node:fs/promises";
 
-const client = new S3Client({
-    // endpoint: 
-    //it is needed for r2 but not for s3
-    region: process.env.R2_BUCKET_REGION as string,
-    credentials: {
-        accessKeyId: process.env.R2_ACCESS_KEY as string,
-        secretAccessKey: process.env.R2_SECRET_KEY as string
-    },
+import {
+  PutObjectCommand,
+  S3Client,
+  S3ServiceException,
+} from "@aws-sdk/client-s3";
 
-});
+/**
+ * Upload a file to an S3 bucket.
+ * @param {{ bucketName: string, key: string, filePath: string }}
+ */
+export const main = async ({ bucketName, key, filePath }) => {
+  const client = new S3Client({});
+  const command = new PutObjectCommand({
+    Bucket: bucketName,
+    Key: key,
+    Body: await readFile(filePath),
+  });
 
-const url=async(key:string)=>{
-    const command=new GetObjectCommand({
-        Bucket:process.env.R2_BUCKET_NAME as string,
-        Key:key
-    });
-    const url= await getSignedUrl(client,command)
-    return url
-}
-
-async function url1() {
-    const value=await url('hi.txt')
-    console.log(value)
-} 
-// url1()
-
-async function uploadFile(bucketName: string, fileName: string) {
-    try {
-        const fileContent = fs.readFileSync('./hi.txt');
-     
-        const command = new PutObjectCommand({
-            Bucket: bucketName,
-            Key: fileName,
-            Body: fileContent,
-            // ContentType:"application/pdf" 
-            //by default its octetstream so chnaging it will allow to open online instead of downloading
-            /*Like for text file Content-Type='text/plain'
-            for image png Content-Type='image/png'
-            for jpg,jpeg ContentType:"image/jpeg",
-            pdf Content-Type=application/pdf*/
-        });
-        const response = await client.send(command);
-        console.log("File uploaded successfully. Response:", response);
-    } catch (error) {
-        console.error("File upload failed:", error);
+  try {
+    const response = await client.send(command);
+    console.log(response);
+  } catch (caught) {
+    if (
+      caught instanceof S3ServiceException &&
+      caught.name === "EntityTooLarge"
+    ) {
+      console.error(
+        `Error from S3 while uploading object to ${bucketName}. \
+The object was too large. To upload objects larger than 5GB, use the S3 console (160GB max) \
+or the multipart upload API (5TB max).`,
+      );
+    } else if (caught instanceof S3ServiceException) {
+      console.error(
+        `Error from S3 while uploading object to ${bucketName}.  ${caught.name}: ${caught.message}`,
+      );
+    } else {
+      throw caught;
     }
-}
-
-// uploadFile(process.env.R2_BUCKET_NAME,'hi.txt')
-url1()
-
-export default client;
+  }
+};

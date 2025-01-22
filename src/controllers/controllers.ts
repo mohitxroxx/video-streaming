@@ -1,13 +1,31 @@
-import { Response } from "express"
-import {Requests} from "../utils/def"
+import { Response, NextFunction } from "express"
+import { Requests } from "../utils/def"
+import { putObject } from "../utils/putObject"
+import { v4 } from "uuid"
+import formidable from 'formidable';
 
 
-const uploadFile = async (req: Requests, res: Response) => {
+const uploadFile = async (req: Requests, res: Response, next: NextFunction) => {
     try {
-        return res.status(200).json({ msg: 'Sample route' })
-    } catch (error) {
-        console.error(error)
-        return res.status(500).json({ error: 'Error occured while fetching data' })
+        const {myfiles} = req.files;
+        const fileName = "images/"+v4()
+        const result = await putObject(myfiles.data, fileName);
+
+        if (!result || !result.url || !result.key) {
+            return res.status(400).json({
+                "status": result,
+                "data": "Image is not uploaded",
+            });
+        }
+
+        const {url, key} = result;
+
+        return res.status(201).json({
+            "status": "success",
+            "data": url,
+        })
+    } catch (err) {
+        console.error(err);
     }
 }
 
