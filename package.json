@@ -13,6 +13,7 @@
   "description": "Backend files",
   "dependencies": {
     "@aws-sdk/client-s3": "^3.731.1",
+    "@aws-sdk/lib-storage": "^3.758.0",
     "axios": "^1.7.5",
     "bcrypt": "^5.1.1",
     "connect-redis": "^7.1.1",
@@ -38,6 +39,7 @@
     "@types/express-session": "^1.18.0",
     "@types/formidable": "^3.4.5",
     "@types/jsonwebtoken": "^9.0.6",
+    "@types/mime-types": "^2.1.4",
     "@types/mongoose": "^5.11.97",
     "@types/node": "^22.5.0",
     "@types/uuid": "^10.0.0",
