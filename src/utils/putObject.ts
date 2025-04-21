@@ -1,6 +1,22 @@
 import { Upload } from "@aws-sdk/lib-storage";
 import { s3Client } from "./s3Credentials";
 import mime from 'mime-types';
+import { GetObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+
+
+export const getSignedUrlS3 = async (fileName: string, bucketName: string) => {
+    try {
+        const client = new S3Client({ region: process.env.AWS_REGION })
+        const command = new GetObjectCommand({ Bucket: bucketName, Key: fileName });
+        return await getSignedUrl(client, command, { expiresIn: 1 * 60 * 60 });
+    } catch (error) {
+        console.error(error)
+        return ""
+    }
+}
+
 
 export const putObject = async(file,fileName) =>{
     try{
@@ -50,11 +66,9 @@ export const putObject = async(file,fileName) =>{
   
           const timeTaken = ((endTime - startTime) / 1000).toFixed(2);
           console.log(`Upload complete! Total time taken: ${timeTaken} seconds`);
-  
 
-          let url = `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${params.Key}`
-          console.log(url);
-          return {url,key:params.Key};
+          const url = await getSignedUrlS3(fileName, process.env.AWS_S3_BUCKET)
+          return { url, key: params.Key };
     }catch(err){
         console.error(err);
     }
