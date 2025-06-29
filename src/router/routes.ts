@@ -15,7 +15,7 @@ import {
 const router = express.Router();
 
 router.post('/admin/login', adminLogin);
-router.post('/admin/create', createAdmin);
+// router.post('/admin/create', createAdmin);
 
 router.post('/admin/upload', verifyAdminToken, uploadVideo);
 router.get('/admin/videos', verifyAdminToken, getAllVideos);
