@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Portal - Video Streaming</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .login-section, .dashboard-section {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .login-section {
+            max-width: 400px;
+            margin: 50px auto;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+        }
+
+        .btn-success {
+            background: #28a745;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .video-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .video-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .video-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .video-info {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .video-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 14px;
+            width: auto;
+        }
+
+        .upload-section {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .file-upload {
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 20px;
+            transition: border-color 0.3s;
+        }
+
+        .file-upload:hover {
+            border-color: #764ba2;
+        }
+
+        .file-upload input[type="file"] {
+            display: none;
+        }
+
+        .file-upload label {
+            cursor: pointer;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .status {
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .logout-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #dc3545;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Login Section -->
+        <div id="loginSection" class="login-section">
+            <h2>Admin Login</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit" class="btn">Login</button>
+            </form>
+            <div id="loginStatus"></div>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div id="dashboardSection" class="hidden">
+            <button class="logout-btn" onclick="logout()">Logout</button>
+            
+            <div class="header">
+                <h1>🎬 Admin Dashboard</h1>
+                <p>Manage your video content and monitor platform statistics</p>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalVideos">0</div>
+                    <div class="stat-label">Total Videos</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalViews">0</div>
+                    <div class="stat-label">Total Views</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="publicVideos">0</div>
+                    <div class="stat-label">Public Videos</div>
+                </div>
+            </div>
+
+            <!-- Upload Section -->
+            <div class="upload-section">
+                <h2>📤 Upload New Video</h2>
+                <form id="uploadForm">
+                    <div class="form-group">
+                        <label for="videoTitle">Video Title</label>
+                        <input type="text" id="videoTitle" name="title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="videoDescription">Description (Optional)</label>
+                        <textarea id="videoDescription" name="description" rows="3"></textarea>
+                    </div>
+                    <div class="file-upload">
+                        <input type="file" id="videoFile" name="video" accept="video/*" required>
+                        <label for="videoFile">
+                            <div>📁 Click to select video file</div>
+                            <div style="font-size: 14px; margin-top: 10px; color: #666;">
+                                Supported formats: MP4, WebM, OGG, AVI, MOV, MKV
+                            </div>
+                        </label>
+                    </div>
+                    <div class="progress-bar hidden" id="progressBar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <button type="submit" class="btn">Upload Video</button>
+                </form>
+                <div id="uploadStatus"></div>
+            </div>
+
+            <!-- Videos List -->
+            <div class="dashboard-section">
+                <h2>📋 Manage Videos</h2>
+                <div id="videosList" class="video-grid">
+                    <!-- Videos will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let authToken = localStorage.getItem('adminToken');
+
+        // Check if already logged in
+        if (authToken) {
+            showDashboard();
+        }
+
+        // Login Form Handler
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                username: document.getElementById('username').value,
+                password: document.getElementById('password').value
+            };
+
+            try {
+                const response = await fetch('/api/admin/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    localStorage.setItem('adminToken', data.token);
+                    authToken = data.token;
+                    showStatus('Login successful!', 'success');
+                    setTimeout(showDashboard, 1000);
+                } else {
+                    showStatus(data.error || 'Login failed', 'error');
+                }
+            } catch (error) {
+                showStatus('Network error. Please try again.', 'error');
+            }
+        });
+
+        // Upload Form Handler
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            formData.append('title', document.getElementById('videoTitle').value);
+            formData.append('description', document.getElementById('videoDescription').value);
+            formData.append('video', document.getElementById('videoFile').files[0]);
+
+            const progressBar = document.getElementById('progressBar');
+            const progressFill = document.getElementById('progressFill');
+            
+            progressBar.classList.remove('hidden');
+            progressFill.style.width = '0%';
+
+            try {
+                const xhr = new XMLHttpRequest();
+                
+                xhr.upload.addEventListener('progress', (e) => {
+                    if (e.lengthComputable) {
+                        const percentComplete = (e.loaded / e.total) * 100;
+                        progressFill.style.width = percentComplete + '%';
+                    }
+                });
+
+                xhr.addEventListener('load', () => {
+                    if (xhr.status === 200) {
+                        const response = JSON.parse(xhr.responseText);
+                        if (response.success) {
+                            showStatus('Video uploaded successfully!', 'success');
+                            document.getElementById('uploadForm').reset();
+                            loadVideos();
+                            updateStats();
+                        } else {
+                            showStatus(response.error || 'Upload failed', 'error');
+                        }
+                    } else {
+                        showStatus('Upload failed. Please try again.', 'error');
+                    }
+                    progressBar.classList.add('hidden');
+                });
+
+                xhr.addEventListener('error', () => {
+                    showStatus('Network error. Please try again.', 'error');
+                    progressBar.classList.add('hidden');
+                });
+
+                xhr.open('POST', '/api/admin/upload');
+                xhr.setRequestHeader('Authorization', `Bearer ${authToken}`);
+                xhr.send(formData);
+
+            } catch (error) {
+                showStatus('Upload failed. Please try again.', 'error');
+                progressBar.classList.add('hidden');
+            }
+        });
+
+        // Load Videos
+        async function loadVideos() {
+            try {
+                const response = await fetch('/api/admin/videos', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    displayVideos(data.videos);
+                }
+            } catch (error) {
+                console.error('Error loading videos:', error);
+            }
+        }
+
+        // Display Videos
+        function displayVideos(videos) {
+            const videosList = document.getElementById('videosList');
+            videosList.innerHTML = '';
+
+            videos.forEach(video => {
+                const videoCard = document.createElement('div');
+                videoCard.className = 'video-card';
+                videoCard.innerHTML = `
+                    <div class="video-title">${video.title}</div>
+                    <div class="video-info">
+                        <div>📁 ${video.filename}</div>
+                        <div>📊 ${video.views} views</div>
+                        <div>📅 ${new Date(video.createdAt).toLocaleDateString()}</div>
+                        <div>👤 ${video.uploadedBy}</div>
+                        <div>${video.isPublic ? '✅ Public' : '🔒 Private'}</div>
+                    </div>
+                    <div class="video-actions">
+                        <button class="btn btn-small btn-secondary" onclick="toggleVisibility('${video.id}')">
+                            ${video.isPublic ? 'Make Private' : 'Make Public'}
+                        </button>
+                        <button class="btn btn-small btn-danger" onclick="deleteVideo('${video.id}')">
+                            Delete
+                        </button>
+                    </div>
+                `;
+                videosList.appendChild(videoCard);
+            });
+        }
+
+        // Update Stats
+        async function updateStats() {
+            try {
+                const response = await fetch('/api/admin/videos', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    const videos = data.videos;
+                    const totalViews = videos.reduce((sum, video) => sum + video.views, 0);
+                    const publicVideos = videos.filter(video => video.isPublic).length;
+
+                    document.getElementById('totalVideos').textContent = videos.length;
+                    document.getElementById('totalViews').textContent = totalViews;
+                    document.getElementById('publicVideos').textContent = publicVideos;
+                }
+            } catch (error) {
+                console.error('Error updating stats:', error);
+            }
+        }
+
+        // Toggle Video Visibility
+        async function toggleVisibility(videoId) {
+            try {
+                const response = await fetch(`/api/admin/videos/${videoId}/toggle`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showStatus(data.message, 'success');
+                    loadVideos();
+                    updateStats();
+                } else {
+                    showStatus(data.error || 'Operation failed', 'error');
+                }
+            } catch (error) {
+                showStatus('Network error. Please try again.', 'error');
+            }
+        }
+
+        // Delete Video
+        async function deleteVideo(videoId) {
+            if (!confirm('Are you sure you want to delete this video?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/admin/videos/${videoId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showStatus('Video deleted successfully!', 'success');
+                    loadVideos();
+                    updateStats();
+                } else {
+                    showStatus(data.error || 'Delete failed', 'error');
+                }
+            } catch (error) {
+                showStatus('Network error. Please try again.', 'error');
+            }
+        }
+
+        // Show Dashboard
+        function showDashboard() {
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('dashboardSection').classList.remove('hidden');
+            loadVideos();
+            updateStats();
+        }
+
+        // Logout
+        function logout() {
+            localStorage.removeItem('adminToken');
+            authToken = null;
+            document.getElementById('dashboardSection').classList.add('hidden');
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('loginForm').reset();
+        }
+
+        // Show Status Message
+        function showStatus(message, type) {
+            const statusElement = document.getElementById('loginStatus');
+            statusElement.innerHTML = `<div class="status ${type}">${message}</div>`;
+            setTimeout(() => {
+                statusElement.innerHTML = '';
+            }, 5000);
+        }
+
+        // File Upload Preview
+        document.getElementById('videoFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const label = document.querySelector('.file-upload label div');
+                label.textContent = `📁 Selected: ${file.name}`;
+            }
+        });
+    </script>
+</body>
+</html> 
