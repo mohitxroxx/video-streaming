@@ -9,21 +9,23 @@ import {
     getAllVideos,
     deleteVideo,
     toggleVideoVisibility,
-    createAdmin
+    createAdmin,
+    bulkUpload
 } from '../controllers/controllers';
 
 const router = express.Router();
 
-router.post('/admin/login', adminLogin);
-// router.post('/admin/create', createAdmin);
+router.post('/admin/login', adminLogin as express.RequestHandler);
+router.post('/admin/create', createAdmin as express.RequestHandler);
 
-router.post('/admin/upload', verifyAdminToken, uploadVideo);
-router.get('/admin/videos', verifyAdminToken, getAllVideos);
-router.delete('/admin/videos/:videoId', verifyAdminToken, deleteVideo);
-router.patch('/admin/videos/:videoId/toggle', verifyAdminToken, toggleVideoVisibility);
+router.post('/admin/upload', verifyAdminToken as express.RequestHandler, uploadVideo as express.RequestHandler);
+router.post('/admin/bulk-upload', verifyAdminToken as express.RequestHandler, bulkUpload as express.RequestHandler);
+router.get('/admin/videos', verifyAdminToken as express.RequestHandler, getAllVideos as express.RequestHandler);
+router.delete('/admin/videos/:videoId', verifyAdminToken as express.RequestHandler, deleteVideo as express.RequestHandler);
+router.patch('/admin/videos/:videoId/toggle', verifyAdminToken as express.RequestHandler, toggleVideoVisibility as express.RequestHandler);
 
-router.get('/videos', getVideos);
-router.get('/videos/:videoId', getVideo);
-router.get('/stream/:videoId', streamVideo);
+router.get('/videos', getVideos as express.RequestHandler);
+router.get('/videos/:videoId', getVideo as express.RequestHandler);
+router.get('/stream/:videoId', streamVideo as express.RequestHandler);
 
 export default router;

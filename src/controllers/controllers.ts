@@ -9,6 +9,9 @@ import { Video, Admin } from '../models/model';
 import { uploadToS3, getSignedStreamUrl, deleteFromS3, getPublicUrl } from '../config/aws';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as mime from 'mime-types';
+import { Upload } from '@aws-sdk/lib-storage';
+import { s3Client, BUCKET_NAME } from '../config/aws';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
@@ -335,5 +338,78 @@ export const createAdmin = async (req: Request, res: Response) => {
     } catch (error) {
         console.error('Create admin error:', error);
         res.status(500).json({ error: 'Failed to create admin' });
+    }
+};
+
+export const bulkUpload = async (req: Requests, res: Response) => {
+    try {
+        if (!req.files || !req.files.videos) {
+            return res.status(400).json({ error: 'No video files uploaded' });
+        }
+        let files = req.files.videos;
+        if (!Array.isArray(files)) files = [files];
+        const results = [];
+        for (const file of files) {
+            const allowedTypes = ['video/mp4', 'video/webm', 'video/ogg', 'video/avi', 'video/mov', 'video/x-matroska'];
+            if (!allowedTypes.includes(file.mimetype)) {
+                results.push({ name: file.name, error: 'Invalid video format' });
+                continue;
+            }
+            const fileExtension = path.extname(file.name);
+            const baseName = path.basename(file.name, fileExtension);
+            const uniqueFilename = `${uuidv4()}${fileExtension}`;
+            const s3Key = `videos/${uniqueFilename}`;
+            const tempDir = path.join(__dirname, '../../temp');
+            if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
+            const tempFilePath = path.join(tempDir, uniqueFilename);
+            await file.mv(tempFilePath);
+            const params = {
+                Bucket: BUCKET_NAME,
+                Key: s3Key,
+                Body: fs.createReadStream(tempFilePath),
+                ContentType: file.mimetype,
+            };
+            const queueSize = 4;
+            const partSize = 10 * 1024 * 1024;
+            let lastProgress = 0;
+            const parallelUploads3 = new Upload({
+                client: s3Client,
+                params,
+                queueSize,
+                partSize,
+                leavePartsOnError: false,
+            });
+            const startTime = Date.now();
+            parallelUploads3.on('httpUploadProgress', (progress) => {
+                if (progress.total) {
+                    const percentage = ((progress.loaded / progress.total) * 100).toFixed(2);
+                    lastProgress = parseFloat(percentage);
+                }
+            });
+            try {
+                await parallelUploads3.done();
+                const video = new Video({
+                    title: baseName,
+                    description: '',
+                    filename: uniqueFilename,
+                    originalName: file.name,
+                    s3Key,
+                    s3Url: getPublicUrl(s3Key),
+                    size: file.size,
+                    mimeType: file.mimetype,
+                    uploadedBy: req.user?.username || 'admin',
+                });
+                await video.save();
+                results.push({ name: file.name, status: 'success', progress: lastProgress });
+            } catch (err) {
+                results.push({ name: file.name, error: err.message, progress: lastProgress });
+            } finally {
+                if (fs.existsSync(tempFilePath)) fs.unlinkSync(tempFilePath);
+            }
+        }
+        res.json({ success: true, results });
+    } catch (error) {
+        console.error('Bulk upload error:', error);
+        res.status(500).json({ error: 'Bulk upload failed' });
     }
 };

@@ -342,6 +342,20 @@
                 <div id="uploadStatus"></div>
             </div>
 
+            <!-- Bulk Upload Section -->
+            <div class="upload-section">
+                <h2>📤 Bulk Upload Videos</h2>
+                <form id="bulkUploadForm">
+                    <div class="form-group">
+                        <label for="bulkVideoFiles">Select Multiple Videos</label>
+                        <input type="file" id="bulkVideoFiles" name="videos" accept="video/*" multiple required>
+                    </div>
+                    <button type="submit" class="btn">Bulk Upload</button>
+                </form>
+                <div id="bulkUploadStatus"></div>
+                <div id="bulkProgressList"></div>
+            </div>
+
             <!-- Videos List -->
             <div class="dashboard-section">
                 <h2>📋 Manage Videos</h2>
@@ -449,6 +463,60 @@
                 progressBar.classList.add('hidden');
             }
         });
+
+        // Bulk Upload Handler
+        const bulkUploadForm = document.getElementById('bulkUploadForm');
+        if (bulkUploadForm) {
+            bulkUploadForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const files = document.getElementById('bulkVideoFiles').files;
+                if (!files.length) return;
+                const statusDiv = document.getElementById('bulkUploadStatus');
+                const progressList = document.getElementById('bulkProgressList');
+                statusDiv.innerHTML = '';
+                progressList.innerHTML = '';
+                const formData = new FormData();
+                for (let i = 0; i < files.length; i++) {
+                    formData.append('videos', files[i]);
+                    progressList.innerHTML += `<div id="bulk-progress-${i}">${files[i].name}: <span>Queued</span></div>`;
+                }
+                try {
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('POST', '/api/admin/bulk-upload');
+                    xhr.setRequestHeader('Authorization', `Bearer ${localStorage.getItem('adminToken')}`);
+                    xhr.onload = function() {
+                        if (xhr.status === 200) {
+                            const response = JSON.parse(xhr.responseText);
+                            if (response.success) {
+                                statusDiv.innerHTML = `<div class='status success'>Bulk upload complete!</div>`;
+                                response.results.forEach((result, idx) => {
+                                    const el = document.getElementById(`bulk-progress-${idx}`);
+                                    if (el) {
+                                        if (result.status === 'success') {
+                                            el.innerHTML = `${result.name}: <span style='color:green'>Uploaded</span>`;
+                                        } else {
+                                            el.innerHTML = `${result.name}: <span style='color:red'>${result.error || 'Failed'}</span>`;
+                                        }
+                                    }
+                                });
+                                loadVideos();
+                                updateStats();
+                            } else {
+                                statusDiv.innerHTML = `<div class='status error'>${response.error || 'Bulk upload failed'}</div>`;
+                            }
+                        } else {
+                            statusDiv.innerHTML = `<div class='status error'>Bulk upload failed. Try again.';</div>`;
+                        }
+                    };
+                    xhr.onerror = function() {
+                        statusDiv.innerHTML = `<div class='status error'>Network error. Try again.</div>`;
+                    };
+                    xhr.send(formData);
+                } catch (error) {
+                    statusDiv.innerHTML = `<div class='status error'>Bulk upload failed. Try again.</div>`;
+                }
+            });
+        }
 
         // Load Videos
         async function loadVideos() {
