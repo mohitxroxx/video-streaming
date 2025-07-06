@@ -19,13 +19,6 @@ app.use(express.static(path.join(__dirname, '../public')))
 
 app.use('/api',fileUpload(), routes)
 
-app.get('/admin', (req: express.Request, res: Response) => {
-    res.sendFile(path.join(__dirname, '../public/admin.html'))
-})
-
-app.get('/user', (req: express.Request, res: Response) => {
-    res.sendFile(path.join(__dirname, '../public/user.html'))
-})
 
 app.get('/', (req: express.Request, res: Response) => {
     res.send(`
@@ -93,13 +86,8 @@ app.get('/', (req: express.Request, res: Response) => {
         </head>
         <body>
             <div class="container">
-                <h1>🎬 Video Streaming Platform</h1>
+                <h1>🎬 Video Streaming Platform API</h1>
                 <p>Welcome to our high-performance video streaming service</p>
-                
-                <div class="buttons">
-                    <a href="/admin" class="btn btn-admin">Admin Portal</a>
-                    <a href="/user" class="btn btn-user">User Portal</a>
-                </div>
             </div>
         </body>
         </html>
